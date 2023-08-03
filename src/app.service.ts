@@ -62,18 +62,20 @@ export class AppService {
 
   }
 
-  parseWithFlatten(obj: RedditPostEntity, res: Array<FlatComment> = []): Array<FlatComment> {
+  //todo: data.distinguished is a bot
+  parseWithFlatten(obj: RedditPostEntity,): Array<FlatComment> {
+    let res: Array<FlatComment> = []
     obj.data.children.forEach(el => {
-      const content = this.beautyfy(el.data.body)
+      const comment = this.beautyfy(el.data.body)
       if (el.data.replies) {
-        const childComments = this.parseWithFlatten(el.data.replies, res)
+        const childComments = this.parseWithFlatten(el.data.replies)
         const childs = childComments.reduce((a, b) => {
           return [...a, ...b.content]
         }, [])
-
-        res = [...res, { content: [content, ...childs] }]
+        res.push({ content: [comment, ...childs] })
+      } else {
+        res.push({ content: [comment] })
       }
-      res = [...res, { content: [content] }]
     })
     return res
   }
@@ -97,14 +99,16 @@ export class AppService {
   async getPostAndComments(prompt: string) {
     prompt = prompt + ' site:reddit.com'
     const urls = await this.searchPosts(prompt)
-    const randUrl = urls[Math.floor(Math.random() * 9)]
+    const link = urls[Math.floor(Math.random() * 9)]
     //@ts-ignore
-    const { data: pageDataAsJson } = await this.httpService.axiosRef.get(randUrl + '.json')
+    const { data: pageDataAsJson } = await this.httpService.axiosRef.get(link + '.json')
     const post = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
+    const title = this.beautyfy(pageDataAsJson[0].data.children[0].data.title)
     return {
+      link,
+      title,
       post,
-      comments: this.parseWithFlatten(pageDataAsJson[1]),
-      link: randUrl
+      comments: this.parseWithFlatten(pageDataAsJson[1])
     }
   }
 }
