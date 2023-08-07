@@ -7,10 +7,9 @@ interface Comment {
   children: Array<Comment>
 }
 
-interface FlatComment {
+interface FlattenedComments {
   content: string[],
 }
-
 
 enum Action {
   PREVIOUS,
@@ -39,32 +38,9 @@ export class AppService {
     return results.map(r => r.url)
   }
 
-  *traverseComments(
-    comments: Array<Comment>, //all comments
-    position: Array<Action>, // current position from the first comment
-    idxHoriz: number,
-    idxVert: number,
-  ): Generator<Comment> {
-    if (position.length <= 0) {
-      return
-    }
-    switch (position[0]) {
-      case Action.NEXT:
-        yield comments[++idxHoriz];
-      case Action.PREVIOUS:
-        yield comments[--idxHoriz]
-      case Action.CHILD:
-        yield comments[idxHoriz].children[0]
-      case Action.PARENT:
-        return comments
-
-    }
-
-  }
-
   //todo: data.distinguished is a bot
-  parseWithFlatten(obj: RedditPostEntity,): Array<FlatComment> {
-    let res: Array<FlatComment> = []
+  parseWithFlatten(obj: RedditPostEntity): Array<FlattenedComments> {
+    let res: Array<FlattenedComments> = []
     obj.data.children.forEach(el => {
       const comment = this.beautyfy(el.data.body)
       if (el.data.replies) {
