@@ -33,13 +33,13 @@ export class AppService {
     private readonly httpService: HttpService
   ) { }
 
-  async searchPosts(prompt: string) {
+  private async searchPosts(prompt: string) {
     const { results } = await search(prompt)
     return results.map(r => r.url)
   }
 
   //todo: data.distinguished is a bot
-  parseWithFlatten(obj: RedditPostEntity): Array<FlattenedComments> {
+  private parseWithFlatten(obj: RedditPostEntity): Array<FlattenedComments> {
     let res: Array<FlattenedComments> = []
     obj.data.children.forEach(el => {
       const comment = this.beautyfy(el.data.body)
@@ -56,19 +56,19 @@ export class AppService {
     return res
   }
 
-  //recursively get comments
-  parseNestedComments(obj: RedditPostEntity): Array<Comment> {
-    return obj.data.children.map(el => {
-      const content = this.beautyfy(el.data.body)
-      let children: Array<Comment> = []
-      if (el.data.replies) {
-        children = this.parseNestedComments(el.data.replies)
-      }
-      return { content, children }
-    })
-  }
+  // recursively get comments
+  // parseNestedComments(obj: RedditPostEntity): Array<Comment> {
+  //   return obj.data.children.map(el => {
+  //     const content = this.beautyfy(el.data.body)
+  //     let children: Array<Comment> = []
+  //     if (el.data.replies) {
+  //       children = this.parseNestedComments(el.data.replies)
+  //     }
+  //     return { content, children }
+  //   })
+  // }
 
-  beautyfy(str: string): string {
+  private beautyfy(str: string): string {
     return str ? str.trim().split('\n').join(' ') : ""
   }
 
