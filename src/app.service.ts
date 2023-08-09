@@ -7,9 +7,7 @@ interface Comment {
   children: Array<Comment>
 }
 
-interface FlattenedComments {
-  content: string[],
-}
+type FlattenedComments = Array<Array<string>>
 
 enum Action {
   PREVIOUS,
@@ -39,18 +37,18 @@ export class AppService {
   }
 
   //todo: data.distinguished is a bot
-  private parseWithFlatten(obj: RedditPostEntity): Array<FlattenedComments> {
-    let res: Array<FlattenedComments> = []
+  private parseWithFlatten(obj: RedditPostEntity): FlattenedComments {
+    let res: FlattenedComments = []
     obj.data.children.forEach(el => {
       const comment = this.beautyfy(el.data.body)
       if (el.data.replies) {
         const childComments = this.parseWithFlatten(el.data.replies)
         const childs = childComments.reduce((a, b) => {
-          return [...a, ...b.content]
+          return [...a, ...b]
         }, [])
-        res.push({ content: [comment, ...childs] })
+        res.push([comment, ...childs])
       } else {
-        res.push({ content: [comment] })
+        res.push([comment])
       }
     })
     return res
