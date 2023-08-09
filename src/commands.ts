@@ -5,7 +5,7 @@ import { SHOW_COMMENTS, SEARCH } from './questions';
 
 @Command({
     name: 'redprompt',
-    description: 'results of reddit searching through reddit',
+    description: 'results of a reddit search',
     arguments: '[query]',
     options: { isDefault: true }
 })

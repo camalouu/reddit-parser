@@ -1,3 +1,4 @@
 1. after user prompt CLI asks whether he wants to go to comments or next post.
 2. delete bot comments
 3. add the date of post 
+4. (possible to make an another service-repository- or smth to store query data temporarily, to navigate through results)
