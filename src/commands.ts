@@ -19,7 +19,6 @@ export class AskQuestion {
     }
 }
 
-
 @Command({
     name: 'reddit',
     description: 'results of reddit query',
@@ -37,12 +36,12 @@ export class RedditQuery extends CommandRunner {
 
     async run(passedParam: string[], options?: Options): Promise<void> {
 
-        let question: string = passedParam.join(' ')
-        if (!question) {
-            question = (await this.inquirer.ask<{query: string}>('ask-question', undefined)).query
+        let userPrompt: string = passedParam.join(' ')
+        if (!userPrompt) {
+            userPrompt = (await this.inquirer.ask<{ query: string }>('ask-question', undefined)).query
         }
 
-        const response = await this.appService.getPostAndComments(question)
+        const response = await this.appService.getPostAndComments(userPrompt)
 
         // this.logService.log({ passedParam, options, result })
         const result: Record<string, string> = {}
@@ -55,6 +54,11 @@ export class RedditQuery extends CommandRunner {
 
         this.logService.log(result)
 
+        let askForComments = ""
+        while (askForComments != "no") {
+            askForComments = (await this.inquirer.ask<{ query: string }>('ask-question', undefined)).query
+            this.logService.log("good boy")
+        }
     }
 
     @Option({

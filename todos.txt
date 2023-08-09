@@ -1,0 +1,2 @@
+1. after user prompt CLI asks whether he wants to go to comments or next post.
+2. 
