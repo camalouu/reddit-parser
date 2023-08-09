@@ -1,27 +1,11 @@
 import { Command, CommandRunner, InquirerService, Option, Question, QuestionSet } from 'nest-commander';
 import { LogService } from './log.service';
 import { AppService } from './app.service';
-
-interface Options {
-    title?: boolean
-    post?: boolean
-    link?: boolean
-}
-
-@QuestionSet({ name: 'ask-question' })
-export class AskQuestion {
-    @Question({
-        message: 'What do you want to search?',
-        name: 'query'
-    })
-    parseTask(val: string) {
-        return val;
-    }
-}
+import { SHOW_COMMENTS, SEARCH } from './questions';
 
 @Command({
-    name: 'reddit',
-    description: 'results of reddit query',
+    name: 'redprompt',
+    description: 'results of reddit searching through reddit',
     arguments: '[query]',
     options: { isDefault: true }
 })
@@ -34,54 +18,43 @@ export class RedditQuery extends CommandRunner {
         super()
     }
 
-    async run(passedParam: string[], options?: Options): Promise<void> {
+    async run(passedParam: string[], options?: any): Promise<void> {
 
         let userPrompt: string = passedParam.join(' ')
+
         if (!userPrompt) {
-            userPrompt = (await this.inquirer.ask<{ query: string }>('ask-question', undefined)).query
+            const { prompt } = await this.inquirer.ask(SEARCH, {})
+            userPrompt = prompt
         }
 
-        const response = await this.appService.getPostAndComments(userPrompt)
+        const { title, post, link, comments } = await this.appService.getPostAndComments(userPrompt)
 
-        // this.logService.log({ passedParam, options, result })
-        const result: Record<string, string> = {}
-
-        if (options.title) result.title = response.title
-
-        if (options.link) result.link = response.link
-
-        if (options.post) result.post = response.post
-
-        this.logService.log(result)
-
-        let askForComments = ""
-        while (askForComments != "no") {
-            askForComments = (await this.inquirer.ask<{ query: string }>('ask-question', undefined)).query
-            this.logService.log("good boy")
+        const result: Record<string, any> = {
+            link,
+            title,
+            post,
         }
+
+        if (options.comments) {
+            result.comments = comments
+        } else {
+            const { showComments } = await this.inquirer.ask<{ showComments: boolean }>(SHOW_COMMENTS, {})
+            if (showComments) {
+                result.comments = comments
+            }
+        }
+
+        this.logService.log(
+            JSON.stringify(result, null, 4)
+        )
     }
 
     @Option({
-        flags: '-t, --title [boolean]',
+        flags: '-c, --comments [boolean]',
         description: 'get title of the result',
     })
-    getTitle(val: string) {
+    showComments(val: boolean) {
         return val
     }
 
-    @Option({
-        flags: '-p, --post [boolean]',
-        description: 'get post of the result',
-    })
-    getPost(val: string) {
-        return val
-    }
-
-    @Option({
-        flags: '-l, --link [boolean]',
-        description: 'get link of the result',
-    })
-    getLink(val: string) {
-        return val
-    }
 }
