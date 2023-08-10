@@ -7,11 +7,11 @@ export interface Comment {
 export type FlattenedComments = Array<Array<string>>
 
 export enum Action {
-    NEXT_COMMENT,
-    PREVIOUS_COMMENT,
-    NEXT_THREAD,
-    PREVIOUS_THREAD,
-    QUIT
+    NEXT_COMMENT = 'Next comment',
+    PREVIOUS_COMMENT = 'Previous comment',
+    NEXT_THREAD = 'Next thread',
+    PREVIOUS_THREAD = 'Previous thread',
+    QUIT = 'Quit'
 }
 
 export interface RedditPostEntity {

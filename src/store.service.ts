@@ -21,6 +21,7 @@ export class StoreService {
         return this.post.link
     }
     getCurrentComment() {
+        return this.post.comments
         return this.post.comments[this.threadIdx][this.commentIdx]
     }
     nextComment() {

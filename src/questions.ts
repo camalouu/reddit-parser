@@ -35,7 +35,13 @@ class NavigateComments {
         type: 'list',
         message: 'choose action',
         name: 'actionResult',
-        choices: ['next_comment', 'previous_comment', 'next_thread', 'previous_thread', 'quit']
+        choices: [
+            Action.NEXT_COMMENT,
+            Action.PREVIOUS_COMMENT,
+            Action.NEXT_THREAD,
+            Action.PREVIOUS_THREAD,
+            Action.QUIT
+        ]
     })
     answer(val: any) {
         return val

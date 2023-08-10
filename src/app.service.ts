@@ -17,12 +17,12 @@ export class AppService {
   }
 
   //todo: data.distinguished is a bot
-  private parseWithFlatten(obj: RedditPostEntity): FlattenedComments {
+  private parseAndFlatten(obj: RedditPostEntity): FlattenedComments {
     let res: FlattenedComments = []
     obj.data.children.forEach(el => {
       const comment = this.beautyfy(el.data.body)
       if (el.data.replies) {
-        const childComments = this.parseWithFlatten(el.data.replies)
+        const childComments = this.parseAndFlatten(el.data.replies)
         const childs = childComments.reduce((a, b) => {
           return [...a, ...b]
         }, [])
@@ -50,7 +50,7 @@ export class AppService {
     return str ? str.trim().split('\n').join(' ') : ""
   }
 
-  async getPostAndComments(prompt: string) {
+  async getPostAndSave(prompt: string) {
     prompt = prompt + ' site:reddit.com'
     const urls = await this.searchPosts(prompt)
     const link = urls[Math.floor(Math.random() * 9)]
@@ -58,7 +58,7 @@ export class AppService {
     const { data: pageDataAsJson } = await this.httpService.axiosRef.get(link + '.json')
     const postContent = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
     const title = this.beautyfy(pageDataAsJson[0].data.children[0].data.title)
-    const comments = this.parseWithFlatten(pageDataAsJson[1])
+    const comments = this.parseAndFlatten(pageDataAsJson[1])
 
     this.storeService.setPost({ postContent, title, link, comments })
 

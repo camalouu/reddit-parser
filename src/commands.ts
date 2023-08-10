@@ -3,6 +3,7 @@ import { LogService } from './log.service';
 import { AppService } from './app.service';
 import { SHOW_COMMENTS, SEARCH, NAVIGATE_COMMENTS } from './questions';
 import { StoreService } from './store.service';
+import { Action } from './types';
 
 @Command({
     name: 'redprompt',
@@ -23,8 +24,22 @@ export class RedditQuery extends CommandRunner {
     async navigate() {
         const cm = this.storeService.getCurrentComment()
         this.logService.log(cm)
-        const { actionResult } = await this.inquirer.ask(NAVIGATE_COMMENTS, {})
-        this.logService.log(actionResult)
+        let userAnswer: string
+        do {
+            const { actionResult } = await this.inquirer.ask(NAVIGATE_COMMENTS, {})
+            userAnswer = actionResult
+            switch (actionResult) {
+                case Action.NEXT_COMMENT:
+                    this.logService.log(this.storeService.nextComment()); break;
+                case Action.PREVIOUS_COMMENT:
+                    this.logService.log(this.storeService.previousComment()); break;
+                case Action.NEXT_THREAD:
+                    this.logService.log(this.storeService.nextThread()); break;
+                case Action.PREVIOUS_THREAD:
+                    this.logService.log(this.storeService.previousThread()); break;
+            }
+        } while (userAnswer != Action.QUIT)
+
     }
 
     async run(passedParam: string[], options?: any): Promise<void> {
@@ -35,7 +50,7 @@ export class RedditQuery extends CommandRunner {
             const { prompt } = await this.inquirer.ask(SEARCH, {})
             userPrompt = prompt
         }
-        await this.appService.getPostAndComments(userPrompt)
+        await this.appService.getPostAndSave(userPrompt)
 
         const link = this.storeService.getLink()
         const title = this.storeService.getTitle()
