@@ -69,7 +69,6 @@ export class RedditQuery extends CommandRunner {
             if (showComments) {
                 this.navigate()
             }
-            this.logService.log("NOT IMPLEMENTED")
         }
 
     }

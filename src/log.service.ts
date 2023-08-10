@@ -5,7 +5,9 @@ export class LogService implements LoggerService {
      * Write a 'log' level log.
      */
     log(message: any, ...optionalParams: any[]) {
+        console.log("\n")
         console.log(message)
+        console.log("\n")
     }
 
     /**
