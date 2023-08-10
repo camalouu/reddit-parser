@@ -1,7 +1,8 @@
-import { Command, CommandRunner, InquirerService, Option, Question, QuestionSet } from 'nest-commander';
+import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 import { LogService } from './log.service';
 import { AppService } from './app.service';
-import { SHOW_COMMENTS, SEARCH } from './questions';
+import { SHOW_COMMENTS, SEARCH, NAVIGATE_COMMENTS } from './questions';
+import { StoreService } from './store.service';
 
 @Command({
     name: 'redprompt',
@@ -13,9 +14,17 @@ export class RedditQuery extends CommandRunner {
     constructor(
         private readonly logService: LogService,
         private readonly appService: AppService,
-        private readonly inquirer: InquirerService
+        private readonly inquirer: InquirerService,
+        private readonly storeService: StoreService
     ) {
         super()
+    }
+
+    async navigate() {
+        const cm = this.storeService.getCurrentComment()
+        this.logService.log(cm)
+        const { actionResult } = await this.inquirer.ask(NAVIGATE_COMMENTS, {})
+        this.logService.log(actionResult)
     }
 
     async run(passedParam: string[], options?: any): Promise<void> {
@@ -26,27 +35,28 @@ export class RedditQuery extends CommandRunner {
             const { prompt } = await this.inquirer.ask(SEARCH, {})
             userPrompt = prompt
         }
+        await this.appService.getPostAndComments(userPrompt)
 
-        const { title, post, link, comments } = await this.appService.getPostAndComments(userPrompt)
-
+        const link = this.storeService.getLink()
+        const title = this.storeService.getTitle()
+        const postContent = this.storeService.getPostContent()
         const result: Record<string, any> = {
             link,
             title,
-            post,
+            postContent,
         }
+        this.logService.log(result)
 
         if (options.comments) {
-            result.comments = comments
+            this.navigate()
         } else {
-            const { showComments } = await this.inquirer.ask<{ showComments: boolean }>(SHOW_COMMENTS, {})
+            const { showComments } = await this.inquirer.ask(SHOW_COMMENTS, {})
             if (showComments) {
-                result.comments = comments
+                this.navigate()
             }
+            this.logService.log("NOT IMPLEMENTED")
         }
 
-        this.logService.log(
-            JSON.stringify(result, null, 4)
-        )
     }
 
     @Option({

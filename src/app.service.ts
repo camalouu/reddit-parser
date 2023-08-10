@@ -1,34 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { search } from 'googlethis'
-
-interface Comment {
-  content: string,
-  children: Array<Comment>
-}
-
-type FlattenedComments = Array<Array<string>>
-
-enum Action {
-  PREVIOUS,
-  NEXT,
-  PARENT,
-  CHILD
-}
-
-interface RedditPostEntity {
-  data: {
-    children: Array<RedditPostEntity>
-    body: string
-    replies?: RedditPostEntity
-    selftext?: string
-  }
-}
+import { FlattenedComments, RedditPostEntity, Comment } from './types';
+import { StoreService } from './store.service';
 
 @Injectable()
 export class AppService {
   constructor(
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly storeService: StoreService
   ) { }
 
   private async searchPosts(prompt: string) {
@@ -55,16 +35,16 @@ export class AppService {
   }
 
   // recursively get comments
-  // parseNestedComments(obj: RedditPostEntity): Array<Comment> {
-  //   return obj.data.children.map(el => {
-  //     const content = this.beautyfy(el.data.body)
-  //     let children: Array<Comment> = []
-  //     if (el.data.replies) {
-  //       children = this.parseNestedComments(el.data.replies)
-  //     }
-  //     return { content, children }
-  //   })
-  // }
+  parseNestedComments(obj: RedditPostEntity): Array<Comment> {
+    return obj.data.children.map(el => {
+      const content = this.beautyfy(el.data.body)
+      let children: Array<Comment> = []
+      if (el.data.replies) {
+        children = this.parseNestedComments(el.data.replies)
+      }
+      return { content, children }
+    })
+  }
 
   private beautyfy(str: string): string {
     return str ? str.trim().split('\n').join(' ') : ""
@@ -76,13 +56,11 @@ export class AppService {
     const link = urls[Math.floor(Math.random() * 9)]
     //@ts-ignore
     const { data: pageDataAsJson } = await this.httpService.axiosRef.get(link + '.json')
-    const post = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
+    const postContent = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
     const title = this.beautyfy(pageDataAsJson[0].data.children[0].data.title)
-    return {
-      link,
-      title,
-      post,
-      comments: this.parseWithFlatten(pageDataAsJson[1])
-    }
+    const comments = this.parseWithFlatten(pageDataAsJson[1])
+
+    this.storeService.setPost({ postContent, title, link, comments })
+
   }
 }
