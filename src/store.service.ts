@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Post } from './types';
 
+
 @Injectable()
 export class StoreService {
-
     private post: Post
     private threadIdx: number = 0
     private commentIdx: number = 0
@@ -23,37 +23,33 @@ export class StoreService {
     getCurrentComment() {
         return this.post.comments[this.threadIdx][this.commentIdx]
     }
-    nextComment() {
-        const idx = this.commentIdx + 1
+    private moveComment(move: 1 | -1) {
+        const idx = this.commentIdx + move
         const comment = this.post.comments[this.threadIdx][idx]
         if (comment) {
-            this.commentIdx++
+            this.commentIdx = this.commentIdx + move
             return comment
         }
         return null
     }
-    nextThread() {
-        const idx = this.threadIdx + 1
-        if (idx < this.post.comments.length)
-            return this.post.comments[++this.threadIdx][0]
+    private moveThread(move: 1 | -1) {
+        const idx = this.threadIdx + move
+        if (idx < this.post.comments.length) {
+            this.threadIdx = this.threadIdx + move
+            return this.post.comments[this.threadIdx][0]
+        }
         return null
+    }
+    nextComment() {
+        return this.moveComment(1)
     }
     previousComment() {
-        const idx = this.commentIdx - 1
-        const comment = this.post.comments[this.threadIdx][idx]
-        if (comment) {
-            this.commentIdx--
-            return comment
-        }
-        return null
+        return this.moveComment(-1)
+    }
+    nextThread() {
+        return this.moveThread(1)
     }
     previousThread() {
-        const idx = this.threadIdx - 1
-        if (idx < this.post.comments.length)
-            return this.post.comments[--this.threadIdx][0]
-        return null
-    }
-    print() {
-        console.log("TEST")
+        return this.moveThread(-1)
     }
 }
