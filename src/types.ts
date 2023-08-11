@@ -11,7 +11,9 @@ export enum Action {
     PREVIOUS_COMMENT = 'Previous comment',
     NEXT_THREAD = 'Next thread',
     PREVIOUS_THREAD = 'Previous thread',
-    QUIT = 'Quit'
+    QUIT = 'Quit',
+    SHOW_COMMENTS = 'Show comments',
+    NEXT_POST = 'Next post'
 }
 
 export interface RedditPostEntity {

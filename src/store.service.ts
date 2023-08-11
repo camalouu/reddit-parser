@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Post } from './types';
 
-
 @Injectable()
 export class StoreService {
     private post: Post
@@ -21,13 +20,15 @@ export class StoreService {
         return this.post.link
     }
     getCurrentComment() {
-        return this.post.comments[this.threadIdx][this.commentIdx]
+        if (this.post.comments.length)
+            return this.post.comments[this.threadIdx][this.commentIdx]
+        return null
     }
     private moveComment(move: 1 | -1) {
         const idx = this.commentIdx + move
         const comment = this.post.comments[this.threadIdx][idx]
         if (comment) {
-            this.commentIdx = this.commentIdx + move
+            this.commentIdx += move
             return comment
         }
         return null
@@ -35,7 +36,7 @@ export class StoreService {
     private moveThread(move: 1 | -1) {
         const idx = this.threadIdx + move
         if (idx < this.post.comments.length) {
-            this.threadIdx = this.threadIdx + move
+            this.threadIdx += move
             return this.post.comments[this.threadIdx][0]
         }
         return null

@@ -35,7 +35,7 @@ export class AppService {
   }
 
   // recursively get comments
-  parseNestedComments(obj: RedditPostEntity): Array<Comment> {
+  private parseNestedComments(obj: RedditPostEntity): Array<Comment> {
     return obj.data.children.map(el => {
       const content = this.beautyfy(el.data.body)
       let children: Array<Comment> = []
@@ -61,6 +61,5 @@ export class AppService {
     const comments = this.parseAndFlatten(pageDataAsJson[1])
 
     this.storeService.setPost({ postContent, title, link, comments })
-
   }
 }

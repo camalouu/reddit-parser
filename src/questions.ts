@@ -1,9 +1,8 @@
 import { Question, QuestionSet } from "nest-commander";
-import { LogService } from "./log.service";
 import { Action } from "./types";
 
 export const SEARCH = 'search'
-export const SHOW_COMMENTS = 'comments'
+export const COMMENTS_OR_NEXT_POST = 'comments'
 export const NAVIGATE_COMMENTS = 'navigate_comments'
 
 @QuestionSet({ name: SEARCH })
@@ -17,12 +16,16 @@ class AskSearch {
     }
 }
 
-@QuestionSet({ name: SHOW_COMMENTS })
+@QuestionSet({ name: COMMENTS_OR_NEXT_POST })
 class AskComments {
     @Question({
-        type: "confirm",
-        message: 'do u need comments? ',
-        name: 'showComments'
+        type: "list",
+        message: 'show comments or next post?',
+        name: 'showComments',
+        choices: [
+            Action.SHOW_COMMENTS,
+            Action.NEXT_POST
+        ]
     })
     answer(val: boolean) {
         return val;
@@ -37,8 +40,8 @@ class NavigateComments {
         name: 'actionResult',
         choices: [
             Action.NEXT_COMMENT,
-            Action.PREVIOUS_COMMENT,
             Action.NEXT_THREAD,
+            Action.PREVIOUS_COMMENT,
             Action.PREVIOUS_THREAD,
             Action.QUIT
         ]

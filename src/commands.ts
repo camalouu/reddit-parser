@@ -1,7 +1,7 @@
-import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
+import { Command, CommandRunner, InquirerService } from 'nest-commander';
 import { LogService } from './log.service';
 import { AppService } from './app.service';
-import { SHOW_COMMENTS, SEARCH, NAVIGATE_COMMENTS } from './questions';
+import { COMMENTS_OR_NEXT_POST, SEARCH, NAVIGATE_COMMENTS } from './questions';
 import { StoreService } from './store.service';
 import { Action } from './types';
 
@@ -42,43 +42,26 @@ export class RedditQuery extends CommandRunner {
 
     }
 
+    showPost() {
+        const link = this.storeService.getLink()
+        const title = this.storeService.getTitle()
+        const postContent = this.storeService.getPostContent()
+        this.logService.log({ link, title, postContent })
+    }
+
     async run(passedParam: string[], options?: any): Promise<void> {
-
         let userPrompt: string = passedParam.join(' ')
-
         if (!userPrompt) {
             const { prompt } = await this.inquirer.ask(SEARCH, {})
             userPrompt = prompt
         }
         await this.appService.getPostAndSave(userPrompt)
-
-        const link = this.storeService.getLink()
-        const title = this.storeService.getTitle()
-        const postContent = this.storeService.getPostContent()
-        const result: Record<string, any> = {
-            link,
-            title,
-            postContent,
-        }
-        this.logService.log(result)
-
-        if (options.comments) {
+        this.showPost()
+        const { showComments } = await this.inquirer.ask(COMMENTS_OR_NEXT_POST, {})
+        if (showComments == Action.SHOW_COMMENTS) {
             this.navigate()
         } else {
-            const { showComments } = await this.inquirer.ask(SHOW_COMMENTS, {})
-            if (showComments) {
-                this.navigate()
-            }
+            this.logService.log("UNIMPLEMENTED")
         }
-
     }
-
-    @Option({
-        flags: '-c, --comments [boolean]',
-        description: 'get title of the result',
-    })
-    showComments(val: boolean) {
-        return val
-    }
-
 }
