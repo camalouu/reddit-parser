@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Post } from './types';
+import { writeFileSync } from 'fs'
 
 @Injectable()
 export class StoreService {
     private post: Post
-    private threadIdx: number = 0
-    private commentIdx: number = 0
+    private threadIdx: number
+    private commentIdx: number
 
     setPost(newPost: Post) {
+        this.threadIdx = 0
+        this.commentIdx = 0
         this.post = newPost
+        writeFileSync('parse_result.json', JSON.stringify(this.post))
     }
     getTitle() {
         return this.post.title
@@ -37,7 +41,8 @@ export class StoreService {
         const idx = this.threadIdx + move
         if (idx < this.post.comments.length) {
             this.threadIdx += move
-            return this.post.comments[this.threadIdx][0]
+            this.commentIdx = 0
+            return this.post.comments[this.threadIdx][this.commentIdx]
         }
         return null
     }

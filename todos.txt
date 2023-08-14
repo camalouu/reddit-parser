@@ -4,3 +4,4 @@
 4. DONE: (possible to make an another service-repository- or smth to store query data temporarily, to navigate through results)
 5. WORKS TOO SLOW
 6. edge cases
+7. better architecture needed. store service should not work if no post being initialized for it. 

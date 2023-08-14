@@ -1,6 +1,6 @@
 import { Command, CommandRunner, InquirerService } from 'nest-commander';
 import { LogService } from './log.service';
-import { AppService } from './app.service';
+import { ParseService } from './parser.service';
 import { COMMENTS_OR_NEXT_POST, SEARCH, NAVIGATE_COMMENTS } from './questions';
 import { StoreService } from './store.service';
 import { Action } from './types';
@@ -14,7 +14,7 @@ import { Action } from './types';
 export class RedditQuery extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly appService: AppService,
+        private readonly parseService: ParseService,
         private readonly inquirer: InquirerService,
         private readonly storeService: StoreService
     ) {
@@ -55,13 +55,13 @@ export class RedditQuery extends CommandRunner {
             const { prompt } = await this.inquirer.ask(SEARCH, {})
             userPrompt = prompt
         }
-        await this.appService.getPostAndSave(userPrompt)
+        await this.parseService.getPostAndSave(userPrompt)
         this.showPost()
         const { showComments } = await this.inquirer.ask(COMMENTS_OR_NEXT_POST, {})
         if (showComments == Action.SHOW_COMMENTS) {
             this.navigate()
         } else {
-            this.logService.log("UNIMPLEMENTED")
+            this.logService.log("NOT IMPLEMENTED")
         }
     }
 }

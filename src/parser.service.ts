@@ -5,7 +5,7 @@ import { FlattenedComments, RedditPostEntity, Comment } from './types';
 import { StoreService } from './store.service';
 
 @Injectable()
-export class AppService {
+export class ParseService {
   constructor(
     private readonly httpService: HttpService,
     private readonly storeService: StoreService
