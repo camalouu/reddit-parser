@@ -32,3 +32,8 @@ export interface Post {
     postContent: string
     comments: FlattenedComments
 }
+
+export interface Indexes {
+    commentIdx: number
+    threadIdx: number
+}

@@ -3,7 +3,7 @@ import { LogService } from './log.service';
 import { ParseService } from './parser.service';
 import { COMMENTS_OR_NEXT_POST, SEARCH, NAVIGATE_COMMENTS } from './questions';
 import { StoreService } from './store.service';
-import { Action } from './types';
+import { Action, Indexes, Post } from './types';
 
 @Command({
     name: 'redprompt',
@@ -20,48 +20,47 @@ export class RedditQuery extends CommandRunner {
     ) {
         super()
     }
-
-    async navigate() {
-        const cm = this.storeService.getCurrentComment()
-        this.logService.log(cm)
-        let userAnswer: string
-        do {
-            const { actionResult } = await this.inquirer.ask(NAVIGATE_COMMENTS, {})
-            userAnswer = actionResult
-            switch (actionResult) {
-                case Action.NEXT_COMMENT:
-                    this.logService.log(this.storeService.nextComment()); break;
-                case Action.PREVIOUS_COMMENT:
-                    this.logService.log(this.storeService.previousComment()); break;
-                case Action.NEXT_THREAD:
-                    this.logService.log(this.storeService.nextThread()); break;
-                case Action.PREVIOUS_THREAD:
-                    this.logService.log(this.storeService.previousThread()); break;
-            }
-        } while (userAnswer != Action.QUIT)
-
-    }
-
-    showPost() {
-        const link = this.storeService.getLink()
-        const title = this.storeService.getTitle()
-        const postContent = this.storeService.getPostContent()
-        this.logService.log({ link, title, postContent })
-    }
-
     async run(passedParam: string[], options?: any): Promise<void> {
-        let userPrompt: string = passedParam.join(' ')
-        if (!userPrompt) {
-            const { prompt } = await this.inquirer.ask(SEARCH, {})
-            userPrompt = prompt
-        }
-        await this.parseService.getPostAndSave(userPrompt)
-        this.showPost()
-        const { showComments } = await this.inquirer.ask(COMMENTS_OR_NEXT_POST, {})
-        if (showComments == Action.SHOW_COMMENTS) {
-            this.navigate()
-        } else {
-            this.logService.log("NOT IMPLEMENTED")
+        const { prompt } =
+            await this.inquirer.ask<{ prompt: string }>(SEARCH, {})
+
+        const urls = await this.parseService.searchPosts(prompt)
+
+        for (let url of urls) {
+            const post = await this.parseService.getPost(url)
+            this.logService.printPostDetailes(post)
+            const { actionResult } =
+                await this.inquirer.ask<{ actionResult: Action }>(COMMENTS_OR_NEXT_POST, {})
+            switch (actionResult) {
+                case Action.QUIT:
+                    return;
+                case Action.NEXT_POST:
+                    this.logService.log("should not be called")
+                    continue;
+                case Action.SHOW_COMMENTS:
+                    const indexes: Indexes = { commentIdx: 0, threadIdx: 0 }
+                    this.logService.log(this.storeService.getFirstComment(post))
+
+                    const { actionResult } =
+                        await this.inquirer.ask<{ actionResult: Action }>(NAVIGATE_COMMENTS, {})
+
+                    switch (actionResult) {
+                        case Action.NEXT_COMMENT:
+                            this.logService.log(
+                                this.storeService.nextComment(post.comments, indexes)
+                            )
+                            break;
+                        case Action.NEXT_THREAD:
+                            this.logService.log(
+                                "not impl"
+                            )
+                            break;
+                        case Action.NEXT_POST:
+                            continue;
+                        case Action.QUIT:
+                            return
+                    }
+            }
         }
     }
 }

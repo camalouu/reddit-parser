@@ -21,10 +21,11 @@ class AskComments {
     @Question({
         type: "list",
         message: 'show comments or next post?',
-        name: 'showComments',
+        name: 'actionResult',
         choices: [
             Action.SHOW_COMMENTS,
-            Action.NEXT_POST
+            Action.NEXT_POST,
+            Action.QUIT
         ]
     })
     answer(val: boolean) {
@@ -43,6 +44,7 @@ class NavigateComments {
             Action.NEXT_THREAD,
             Action.PREVIOUS_COMMENT,
             Action.PREVIOUS_THREAD,
+            Action.NEXT_POST,
             Action.QUIT
         ]
     })

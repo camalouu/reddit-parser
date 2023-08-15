@@ -1,19 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { search } from 'googlethis'
-import { FlattenedComments, RedditPostEntity, Comment } from './types';
-import { StoreService } from './store.service';
+import { FlattenedComments, RedditPostEntity, Comment, Post } from './types';
 
 @Injectable()
 export class ParseService {
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly storeService: StoreService
-  ) { }
+  constructor(private readonly httpService: HttpService) { }
 
-  private async searchPosts(prompt: string) {
-    const { results } = await search(prompt)
+  async searchPosts(prompt: string) {
+    const { results } = await search(prompt + ' site:reddit.com')
     return results.map(r => r.url)
+  }
+
+  async getPost(link: string): Promise<Post> {
+    // @ts-ignore
+    const { data: pageDataAsJson } =
+      await this.httpService.axiosRef.get(link + '.json')
+    const postContent = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
+    const title = this.beautyfy(pageDataAsJson[0].data.children[0].data.title)
+    const comments = this.parseAndFlatten(pageDataAsJson[1])
+    return { postContent, title, link, comments }
   }
 
   //todo: data.distinguished is a bot
@@ -48,18 +54,5 @@ export class ParseService {
 
   private beautyfy(str: string): string {
     return str ? str.trim().split('\n').join(' ') : ""
-  }
-
-  async getPostAndSave(prompt: string) {
-    prompt = prompt + ' site:reddit.com'
-    const urls = await this.searchPosts(prompt)
-    const link = urls[Math.floor(Math.random() * 9)]
-    //@ts-ignore
-    const { data: pageDataAsJson } = await this.httpService.axiosRef.get(link + '.json')
-    const postContent = this.beautyfy(pageDataAsJson[0].data.children[0].data.selftext)
-    const title = this.beautyfy(pageDataAsJson[0].data.children[0].data.title)
-    const comments = this.parseAndFlatten(pageDataAsJson[1])
-
-    this.storeService.setPost({ postContent, title, link, comments })
   }
 }
