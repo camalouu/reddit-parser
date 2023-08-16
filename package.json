@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "description": "Nest TypeScript starter repository",
   "license": "MIT",
+  "preferGlobal": true,
+  "bin": "./dist/main.js",
   "scripts": {
-    "bin": {
-      "rdt": "./dist/main.js"
-    },
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
