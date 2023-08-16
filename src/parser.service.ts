@@ -6,7 +6,9 @@ import { FlattenedComments, RedditPostEntity, Comment, Post } from './types';
 @Injectable()
 export class ParseService {
   constructor(private readonly httpService: HttpService) { }
-
+  private beautyfy(str: string): string {
+    return str ? str.trim().split('\n').join(' ') : "[Not Available]"
+  }
   async searchPosts(prompt: string) {
     const { results } = await search(prompt + ' site:reddit.com')
     return results.map(r => r.url)
@@ -38,21 +40,5 @@ export class ParseService {
       }
     })
     return res
-  }
-
-  // recursively get comments
-  private parseNestedComments(obj: RedditPostEntity): Array<Comment> {
-    return obj.data.children.map(el => {
-      const content = this.beautyfy(el.data.body)
-      let children: Array<Comment> = []
-      if (el.data.replies) {
-        children = this.parseNestedComments(el.data.replies)
-      }
-      return { content, children }
-    })
-  }
-
-  private beautyfy(str: string): string {
-    return str ? str.trim().split('\n').join(' ') : ""
   }
 }

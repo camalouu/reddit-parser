@@ -42,8 +42,6 @@ class NavigateComments {
         choices: [
             Action.NEXT_COMMENT,
             Action.NEXT_THREAD,
-            Action.PREVIOUS_COMMENT,
-            Action.PREVIOUS_THREAD,
             Action.NEXT_POST,
             Action.QUIT
         ]
