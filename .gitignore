@@ -19,5 +19,5 @@ npm-debug.log
 
 # dist
 /dist
-parse_result.json
-package-lock.json
+/parse_result.json
+/package-lock.json
