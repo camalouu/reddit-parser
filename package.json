@@ -1,8 +1,10 @@
 {
-  "name": "nest-typescript-starter",
+  "name": "rdt",
   "version": "1.0.0",
   "description": "Nest TypeScript starter repository",
   "license": "MIT",
+  "preferGlobal": true,
+  "bin": "./dist/main.js",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

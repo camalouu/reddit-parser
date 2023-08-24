@@ -1,83 +1,71 @@
-import { Command, CommandRunner, InquirerService, Option, Question, QuestionSet } from 'nest-commander';
+import { Command, CommandRunner, InquirerService } from 'nest-commander';
 import { LogService } from './log.service';
-import { AppService } from './app.service';
-
-interface Options {
-    title?: boolean
-    post?: boolean
-    link?: boolean
-}
-
-@QuestionSet({ name: 'ask-question' })
-export class AskQuestion {
-    @Question({
-        message: 'What do you want to search?',
-        name: 'query'
-    })
-    parseTask(val: string) {
-        return val;
-    }
-}
-
+import { ParseService } from './parser.service';
+import { COMMENTS_OR_NEXT_POST, SEARCH, NAVIGATE_COMMENTS } from './questions';
+import { StoreService } from './store.service';
+import { Action, Indexes } from './types';
 
 @Command({
-    name: 'reddit',
-    description: 'results of reddit query',
+    name: 'rdt',
+    description: 'results of a reddit search',
     arguments: '[query]',
     options: { isDefault: true }
 })
 export class RedditQuery extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly appService: AppService,
-        private readonly inquirer: InquirerService
+        private readonly parseService: ParseService,
+        private readonly inquirer: InquirerService,
+        private readonly storeService: StoreService
     ) {
         super()
     }
-
-    async run(passedParam: string[], options?: Options): Promise<void> {
-
-        let question: string = passedParam.join(' ')
-        if (!question) {
-            question = (await this.inquirer.ask<{query: string}>('ask-question', undefined)).query
+    async run(passedParam: string[], options?: any): Promise<void> {
+        let userInput = passedParam.join(' ')
+        if (!userInput) {
+            const { prompt } =
+                await this.inquirer.ask<{ prompt: string }>(SEARCH, {})
+            userInput = prompt
         }
 
-        const response = await this.appService.getPostAndComments(question)
+        const urls = await this.parseService.searchPosts(userInput)
 
-        // this.logService.log({ passedParam, options, result })
-        const result: Record<string, string> = {}
-
-        if (options.title) result.title = response.title
-
-        if (options.link) result.link = response.link
-
-        if (options.post) result.post = response.post
-
-        this.logService.log(result)
-
-    }
-
-    @Option({
-        flags: '-t, --title [boolean]',
-        description: 'get title of the result',
-    })
-    getTitle(val: string) {
-        return val
-    }
-
-    @Option({
-        flags: '-p, --post [boolean]',
-        description: 'get post of the result',
-    })
-    getPost(val: string) {
-        return val
-    }
-
-    @Option({
-        flags: '-l, --link [boolean]',
-        description: 'get link of the result',
-    })
-    getLink(val: string) {
-        return val
+        for (let url of urls) {
+            const post = await this.parseService.getPost(url)
+            this.logService.printPostDetailes(post)
+            const { actionResult } =
+                await this.inquirer.ask<{ actionResult: Action }>(COMMENTS_OR_NEXT_POST, {})
+            switch (actionResult) {
+                case Action.QUIT:
+                    return;
+                case Action.NEXT_POST:
+                    continue;
+                case Action.SHOW_COMMENTS:
+                    const indexes: Indexes = { commentIdx: 0, threadIdx: 0 }
+                    this.logService.log(this.storeService.getFirstComment(post))
+                    let i = 1
+                    while (i++) {
+                        const { actionResult } =
+                            await this.inquirer.ask<{ actionResult: Action }>(NAVIGATE_COMMENTS, {})
+                        switch (actionResult) {
+                            case Action.NEXT_COMMENT:
+                                this.logService.log(
+                                    this.storeService.nextComment(post.comments, indexes)
+                                )
+                                break;
+                            case Action.NEXT_THREAD:
+                                this.logService.log(
+                                    this.storeService.nextThread(post.comments, indexes)
+                                )
+                                break;
+                            case Action.NEXT_POST:
+                                i = 0;
+                                break;
+                            case Action.QUIT:
+                                return
+                        }
+                    }
+            }
+        }
     }
 }
